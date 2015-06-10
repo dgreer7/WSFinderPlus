@@ -1,25 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
-namespace WSFinderPlus
+﻿namespace WSFinderPlus
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Controls;
+    using System.Windows.Data;
+    using System.Windows.Documents;
+    using System.Windows.Input;
+    using System.Windows.Media;
+    using System.Windows.Media.Imaging;
+    using System.Windows.Navigation;
+    using System.Windows.Shapes;
+
+    //TODO 97: Wrap methods below in try/catch statements and add logging.
+    
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public const byte MAX_SESSIONS = 50;
 
         public MainWindow()
@@ -93,19 +99,27 @@ namespace WSFinderPlus
         //TODO 01: Working on adding working list to display.
         private void btnFindMatchingNames_Click(object sender, RoutedEventArgs e)
         {
-            WorkstationList listToDisplay = new WorkstationList(txtCityCode.Text);
-            if (listToDisplay.WorkingList.Count == 0)
+            try
             {
-                lstBoxReadInWorkstationNames.Items.Add("No matches were found");
+                WorkstationList listToDisplay = new WorkstationList(txtCityCode.Text);
+                if (listToDisplay.WorkingList.Count == 0)
+                {
+                    lstBoxReadInWorkstationNames.Items.Add("No matches were found");
+                    log.Warn(String.Format("No results were returned could be displayed with search terms {0}", txtCityCode.Text));
+                }
+                else
+                {
+                    foreach (KeyValuePair<string, List<string>> workstation in listToDisplay.WorkingList)
+                    {
+                        lstBoxReadInWorkstationNames.Items.Add(String.Format("{0}\t\t{1}", workstation.Key, workstation.Value.ToString()));
+                        log.Info(String.Format("Results returned with search terms {0} have been displayed.", txtCityCode.Text));
+                    }
+                }
             }
-            else
+            catch (Exception displayException)
             {
-                //foreach (Dictionary<string, List<string>> workstation in listToDisplay.WorkingList)
-                //{
-
-                //}
+                log.Error(String.Format("Error occured when attempting to place matching workstations in display. Search critera - city: {0}", txtCityCode.Text), displayException);
             }
-
         }
     }
 }
